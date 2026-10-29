@@ -1,0 +1,50 @@
+seed: 42
+num_clients: 5
+local_epochs: 4
+global_rounds: 12
+batch_size: 32
+learning_rate: 0.015
+fedprox_mu: 0.01
+device: cpu
+
+# Differential privacy guardrail for client updates (Layer 4).
+# When enabled, each client clips its update to clip_norm (L2) and adds
+# Gaussian noise (std = noise_multiplier * clip_norm) BEFORE sending it to the
+# server. This bounds how much any single client / record can influence the
+# shared model, defending against gradient-inversion and membership inference.
+# Disabled by default so existing saved results stay reproducible.
+differential_privacy:
+  enabled: false
+  clip_norm: 1.0
+  noise_multiplier: 0.6
+
+domains:
+  healthcare:
+    name: healthcare
+    task: disease_risk_classification
+    num_classes: 3
+    class_names: [low_risk, medium_risk, high_risk]
+    feature_dim: 12
+    samples_per_client: 400
+    test_samples: 300
+    non_iid_alpha: 0.7
+
+  banking:
+    name: banking
+    task: fraud_detection
+    num_classes: 2
+    class_names: [legitimate, fraudulent]
+    feature_dim: 14
+    samples_per_client: 500
+    test_samples: 400
+    non_iid_alpha: 0.6
+
+federated_strategies:
+  - fedavg
+  - fedprox
+  - fedadagrad
+
+paths:
+  data_dir: data
+  results_dir: results
+  models_dir: models

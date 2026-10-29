@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+data/
+models/
+results/
+*.pt
+client_logins.json
+.DS_Store
+Thumbs.db
+
+# Large artifacts (excluded from the repo by request)
+*.mp4
+mail/sources/

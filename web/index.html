@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NSF dashboard</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap bar">
+      <div class="brand">
+        <span class="mark" aria-hidden="true">NSF</span>
+        <div>
+          <h1>Federated neuro-symbolic dashboard</h1>
+          <p id="subtitle">Verified explanations for healthcare risk and banking fraud.</p>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="seg" role="group" aria-label="Role" id="role-seg">
+          <button type="button" data-role="coordinator" aria-pressed="true">Coordinator</button>
+          <button type="button" data-role="client" aria-pressed="false">Client</button>
+        </div>
+        <div class="seg" role="group" aria-label="Domain">
+          <button type="button" data-domain="healthcare" aria-pressed="true">Healthcare</button>
+          <button type="button" data-domain="banking" aria-pressed="false">Banking</button>
+        </div>
+        <span class="client-auth" id="client-auth" hidden>
+          <span id="client-auth-label"></span>
+          <button type="button" id="logout-btn">Log out</button>
+        </span>
+        <label class="strategy-label">Model
+          <select id="strategy" aria-label="Federated strategy"></select>
+        </label>
+      </div>
+    </div>
+  </header>
+  <p id="status" class="wrap" role="status"></p>
+  <nav class="wrap" aria-label="Sections">
+    <button type="button" data-view="results" data-roles="coordinator" aria-current="page">Results</button>
+    <button type="button" data-view="cases" data-roles="coordinator">Cases (test set)</button>
+    <button type="button" data-view="client" data-roles="client" hidden>My data</button>
+    <button type="button" data-view="predict" data-roles="client" hidden>Predict</button>
+  </nav>
+  <main class="wrap">
+    <section id="view-results">
+      <div id="metrics" class="metrics"></div>
+      <p id="results-note" class="note"></p>
+      <div class="panel">
+        <h2>Strategy comparison</h2>
+        <div class="scroll">
+          <table id="strategy-table"></table>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>Test accuracy by round</h2>
+        <div id="chart"></div>
+      </div>
+      <div class="split">
+        <div class="panel">
+          <h2>Neural confusion</h2>
+          <p class="hint">Rows are true labels. Columns are predictions.</p>
+          <div id="matrix-neural"></div>
+        </div>
+        <div class="panel">
+          <h2>Neuro-symbolic confusion</h2>
+          <p class="hint">Rows are true labels. Columns are the final verified labels.</p>
+          <div id="matrix-ns"></div>
+        </div>
+      </div>
+      <div class="split">
+        <div class="panel">
+          <h2 id="client-title">Client partitions</h2>
+          <div id="clients"></div>
+        </div>
+        <div class="panel">
+          <h2>Test label mix</h2>
+          <div id="test-mix"></div>
+        </div>
+      </div>
+      <div id="plots" class="plots"></div>
+    </section>
+    <section id="view-cases" hidden>
+      <div class="filters">
+        <label>Search
+          <input id="case-search" type="search" placeholder="P00002 or fraudulent" autocomplete="off">
+        </label>
+        <label>Show
+          <select id="case-filter">
+            <option value="all">All cases</option>
+            <option value="override">Overrides only</option>
+            <option value="conflict">Conflicts only</option>
+            <option value="wrong">Final differs from test label</option>
+            <option value="correct">Final matches test label</option>
+          </select>
+        </label>
+        <p id="case-count" class="hint"></p>
+      </div>
+      <div class="cases-layout">
+        <div id="case-list" class="case-list" role="list"></div>
+        <div id="case-detail" class="detail">
+          <p class="muted">Select a case to see the neural label, the symbolic check, and the verified explanation.</p>
+        </div>
+      </div>
+    </section>
+    <section id="view-login" hidden>
+      <form id="login-form" class="panel form login-card" novalidate>
+        <h2>Client sign in</h2>
+        <p class="hint">Each participant signs in to see only their own data. Demo credentials are printed in the server console and saved to client_logins.json.</p>
+        <label>Client id
+          <input id="login-client-id" type="number" min="0" step="1" autocomplete="username" inputmode="numeric">
+        </label>
+        <label>Password
+          <input id="login-password" type="password" autocomplete="current-password">
+        </label>
+        <p id="login-error" class="error" hidden></p>
+        <div class="actions">
+          <button type="submit">Sign in</button>
+        </div>
+      </form>
+    </section>
+    <section id="view-client" hidden>
+      <div id="client-summary" class="metrics"></div>
+      <p id="client-note" class="note"></p>
+      <div class="cases-layout">
+        <div id="client-case-list" class="case-list" role="list"></div>
+        <div id="client-case-detail" class="detail">
+          <p class="muted">Select one of your own records to see the neural label, the symbolic check, and the verified explanation.</p>
+        </div>
+      </div>
+    </section>
+    <section id="view-predict" hidden>
+      <div class="cases-layout">
+        <form id="predict-form" class="panel form" novalidate>
+          <label>Entity id
+            <input id="entity-id" maxlength="40" autocomplete="off" spellcheck="false">
+          </label>
+          <div id="fields" class="fields"></div>
+          <p id="form-error" class="error" hidden></p>
+          <div class="actions">
+            <button type="submit">Run verification</button>
+            <button type="button" id="reset-example">Load example</button>
+          </div>
+        </form>
+        <div id="predict-result" class="detail" data-ready="0">
+          <p class="muted">Run verification to score this record with the selected model.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer class="wrap">
+    Local view of the saved global models. Training rows stay in the client files. This page does not retrain.
+  </footer>
+</body>
+</html>
